@@ -4,6 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claim Your Tokens</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.2em;
+            }
+
+            button {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+        }
+    </style>
 </head>
 <body>
     <h1>Claim Your Tokens</h1>
@@ -18,7 +64,6 @@
 
         const contractAddress = "0xFB51789AAdC64a935Eeb2461D304Fd0F88f3A584"; // Your new contract address
         const contractABI = [
-            // ABI for the functions you want to interact with
             "function claimTokens() external",
             "function lastClaimedTime(address) view returns (uint256)",
             "function claimInterval() view returns (uint256)"
@@ -46,7 +91,7 @@
                     console.error("User rejected the request or there was an error", error);
                 }
             } else {
-                alert("MetaMask is not installed!");
+                alert("MetaMask is not installed! Please install MetaMask or use a compatible browser.");
             }
         }
 
@@ -57,14 +102,13 @@
                 const claimInterval = await contract.claimInterval();
                 const currentTime = Math.floor(Date.now() / 1000);
 
-                if (currentTime >= lastClaimedTime + claimInterval) {
+                if (currentTime >= lastClaimedTime.toNumber() + claimInterval.toNumber()) {
                     const tx = await contract.claimTokens();
                     await tx.wait();
                     alert("Tokens claimed successfully!");
                 } else {
-                    const nextClaimTime = (lastClaimedTime.toNumber() + claimInterval.toNumber()) * 1000;
-                    const nextClaimDate = new Date(nextClaimTime);
-                    alert(`You can claim tokens again after ${nextClaimDate.toLocaleString()}`);
+                    const nextClaimTime = new Date((lastClaimedTime.toNumber() + claimInterval.toNumber()) * 1000);
+                    alert(`You can claim tokens again after ${nextClaimTime.toLocaleString()}`);
                 }
             } catch (error) {
                 console.error("Error claiming tokens", error);
