@@ -39,6 +39,12 @@
             cursor: not-allowed;
         }
 
+        .loading {
+            display: none;
+            margin-top: 20px;
+            font-size: 1em;
+        }
+
         @media (max-width: 600px) {
             h1 {
                 font-size: 1.2em;
@@ -55,6 +61,7 @@
     <h1>Claim Your Tokens</h1>
     <button id="connectWallet">Connect Wallet</button>
     <button id="claimTokens" disabled>Claim Tokens</button>
+    <div id="loading" class="loading">Processing...</div>
 
     <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
     <script type="text/javascript">
@@ -78,6 +85,8 @@
         };
 
         async function connectWallet() {
+            const loadingElement = document.getElementById("loading");
+            loadingElement.style.display = "block";
             if (typeof window.ethereum !== "undefined") {
                 try {
                     await ethereum.request({ method: "eth_requestAccounts" });
@@ -89,13 +98,19 @@
                     alert("Wallet connected");
                 } catch (error) {
                     console.error("User rejected the request or there was an error", error);
+                    alert("Failed to connect wallet. Please check your MetaMask or browser.");
+                } finally {
+                    loadingElement.style.display = "none";
                 }
             } else {
                 alert("MetaMask is not installed! Please install MetaMask or use a compatible browser.");
+                loadingElement.style.display = "none";
             }
         }
 
         async function claimTokens() {
+            const loadingElement = document.getElementById("loading");
+            loadingElement.style.display = "block";
             try {
                 const address = await signer.getAddress();
                 const lastClaimedTime = await contract.lastClaimedTime(address);
@@ -113,6 +128,8 @@
             } catch (error) {
                 console.error("Error claiming tokens", error);
                 alert("Failed to claim tokens. See console for details.");
+            } finally {
+                loadingElement.style.display = "none";
             }
         }
     </script>
