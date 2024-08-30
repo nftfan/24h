@@ -45,6 +45,12 @@
             font-size: 1em;
         }
 
+        .message {
+            margin-top: 20px;
+            font-size: 1em;
+            color: #333;
+        }
+
         @media (max-width: 600px) {
             h1 {
                 font-size: 1.2em;
@@ -62,6 +68,7 @@
     <button id="connectWallet">Connect Wallet</button>
     <button id="claimTokens" disabled>Claim Tokens</button>
     <div id="loading" class="loading">Processing...</div>
+    <div id="message" class="message"></div>
 
     <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
     <script type="text/javascript">
@@ -84,26 +91,36 @@
             await claimTokens();
         };
 
+        function updateMessage(message) {
+            document.getElementById("message").innerText = message;
+        }
+
         async function connectWallet() {
             const loadingElement = document.getElementById("loading");
             loadingElement.style.display = "block";
+            updateMessage('');
             if (typeof window.ethereum !== "undefined") {
                 try {
-                    await ethereum.request({ method: "eth_requestAccounts" });
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
-                    contract = new ethers.Contract(contractAddress, contractABI, signer);
+                    // Check if MetaMask is installed and available
+                    if (window.ethereum.isMetaMask) {
+                        await ethereum.request({ method: "eth_requestAccounts" });
+                        provider = new ethers.providers.Web3Provider(window.ethereum);
+                        signer = provider.getSigner();
+                        contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-                    document.getElementById("claimTokens").disabled = false;
-                    alert("Wallet connected");
+                        document.getElementById("claimTokens").disabled = false;
+                        updateMessage("Wallet connected.");
+                    } else {
+                        updateMessage("MetaMask is not available. Please install MetaMask or use a compatible browser.");
+                    }
                 } catch (error) {
                     console.error("User rejected the request or there was an error", error);
-                    alert("Failed to connect wallet. Please check your MetaMask or browser.");
+                    updateMessage("Failed to connect wallet. Please check your MetaMask or browser.");
                 } finally {
                     loadingElement.style.display = "none";
                 }
             } else {
-                alert("MetaMask is not installed! Please install MetaMask or use a compatible browser.");
+                updateMessage("MetaMask is not installed! Please install MetaMask or use a compatible browser.");
                 loadingElement.style.display = "none";
             }
         }
@@ -111,6 +128,7 @@
         async function claimTokens() {
             const loadingElement = document.getElementById("loading");
             loadingElement.style.display = "block";
+            updateMessage('');
             try {
                 const address = await signer.getAddress();
                 const lastClaimedTime = await contract.lastClaimedTime(address);
@@ -120,14 +138,14 @@
                 if (currentTime >= lastClaimedTime.toNumber() + claimInterval.toNumber()) {
                     const tx = await contract.claimTokens();
                     await tx.wait();
-                    alert("Tokens claimed successfully!");
+                    updateMessage("Tokens claimed successfully!");
                 } else {
                     const nextClaimTime = new Date((lastClaimedTime.toNumber() + claimInterval.toNumber()) * 1000);
-                    alert(`You can claim tokens again after ${nextClaimTime.toLocaleString()}`);
+                    updateMessage(`You can claim tokens again after ${nextClaimTime.toLocaleString()}`);
                 }
             } catch (error) {
                 console.error("Error claiming tokens", error);
-                alert("Failed to claim tokens. See console for details.");
+                updateMessage("Failed to claim tokens. See console for details.");
             } finally {
                 loadingElement.style.display = "none";
             }
@@ -135,3 +153,4 @@
     </script>
 </body>
 </html>
+
