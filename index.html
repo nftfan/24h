@@ -52,7 +52,6 @@
 
         async function claimTokens() {
             try {
-                // Check if the user can claim tokens based on the last claimed time and claim interval
                 const address = await signer.getAddress();
                 const lastClaimedTime = await contract.lastClaimedTime(address);
                 const claimInterval = await contract.claimInterval();
@@ -63,8 +62,9 @@
                     await tx.wait();
                     alert("Tokens claimed successfully!");
                 } else {
-                    const nextClaimTime = new Date((lastClaimedTime + claimInterval) * 1000);
-                    alert(`You can claim tokens again after ${nextClaimTime.toLocaleString()}`);
+                    const nextClaimTime = (lastClaimedTime.toNumber() + claimInterval.toNumber()) * 1000;
+                    const nextClaimDate = new Date(nextClaimTime);
+                    alert(`You can claim tokens again after ${nextClaimDate.toLocaleString()}`);
                 }
             } catch (error) {
                 console.error("Error claiming tokens", error);
